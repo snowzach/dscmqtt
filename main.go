@@ -102,9 +102,9 @@ func main() {
 		case DSC_TYPE_ZONE:
 			switch m.State {
 			case DSC_STATE_OPEN:
-				mqtt.Publish(fmt.Sprintf("%s%s", topic, m.Id), MQTT_STATE_ON)
+				mqtt.Publish(fmt.Sprintf("%s/%s", topic, m.Id), MQTT_STATE_ON)
 			case DSC_STATE_CLOSED:
-				mqtt.Publish(fmt.Sprintf("%s%s", topic, m.Id), MQTT_STATE_OFF)
+				mqtt.Publish(fmt.Sprintf("%s/%s", topic, m.Id), MQTT_STATE_OFF)
 			}
 			logger.Infow("Zone State", "state", m.State, "id", m.Id)
 		default:

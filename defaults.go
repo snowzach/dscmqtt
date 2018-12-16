@@ -29,6 +29,6 @@ func init() {
 	config.SetDefault("mqtt.username", "mqtt")
 	config.SetDefault("mqtt.password", "mqtt")
 	config.SetDefault("mqtt.client_id", "dscmqtt")
-	config.SetDefault("mqtt.topic", "/dsc/zone/")
+	config.SetDefault("mqtt.topic", "dsc/zone")
 
 }
