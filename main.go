@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"net/http"
 	_ "net/http/pprof" // Import for pprof
@@ -86,8 +87,13 @@ func main() {
 		logger.Fatalw("Could not initialize MQTTClient", "error", err)
 	}
 
-	// Get the full status of everything
-	panel.RequestUpdate()
+	// Get the full status of everything at regular intervals
+        go func() {
+		for {
+			panel.RequestUpdate()
+			time.Sleep(config.GetDuration("dsc.full_update_interval"))
+		}
+	}()
 
 	topic := config.GetString("mqtt.topic")
 
