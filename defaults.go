@@ -22,7 +22,7 @@ func init() {
 	// DSC Settings
 	config.SetDefault("dsc.port", "/dev/alarmsystem")
 	config.SetDefault("dsc.baud", 9600)
-	config.SetDefault("dsc.full_update_interval", "10m")
+	config.SetDefault("dsc.full_update_interval", "60m")
 
 	// MQTT Settings
 	config.SetDefault("mqtt.host", "localhost")
