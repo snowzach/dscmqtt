@@ -87,10 +87,20 @@ func main() {
 		logger.Fatalw("Could not initialize MQTTClient", "error", err)
 	}
 
+        // Update the date/time at regular intervals
+        go func() {
+		for {
+                        logger.Info("Updating time")
+			panel.TimeUpdate()
+			time.Sleep(config.GetDuration("dsc.time_update_interval"))
+		}
+	}()
+
 	// Get the full status of everything at regular intervals
         go func() {
 		for {
-			panel.RequestUpdate()
+                        logger.Info("Requesting full update")
+			panel.FullUpdate()
 			time.Sleep(config.GetDuration("dsc.full_update_interval"))
 		}
 	}()

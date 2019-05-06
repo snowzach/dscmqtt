@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	config "github.com/spf13/viper"
@@ -21,12 +22,14 @@ const (
 
 	DSC_CMD_NOOP        = "000"
 	DSC_CMD_FULL_STATUS = "001"
+	DSC_CMD_TIME_UPDATE = "010"
 )
 
 type DSCPanel struct {
-	port   io.ReadWriteCloser
-	ack    chan error
-	msgBuf chan *DSCMessage
+	port      io.ReadWriteCloser
+	ack       chan error
+	msgBuf    chan *DSCMessage
+	sendMutex sync.Mutex
 }
 
 type DSCMessage struct {
@@ -152,11 +155,20 @@ func NewDSCPanel() (*DSCPanel, error) {
 }
 
 // Request a full status update
-func (p *DSCPanel) RequestUpdate() error {
+func (p *DSCPanel) FullUpdate() error {
 	return p.SendCmd(DSC_CMD_FULL_STATUS)
 }
 
+// Update the time
+func (p *DSCPanel) TimeUpdate() error {
+	return p.SendCmd(DSC_CMD_TIME_UPDATE+time.Now().Format("1504010206"))
+}
+
+// Send a command
 func (p *DSCPanel) SendCmd(cmd string) error {
+
+	p.sendMutex.Lock()
+        defer p.sendMutex.Unlock()
 
 	// Send it to the port
 	_, err := fmt.Fprintf(p.port, "%s%s\r\n", cmd, checksum(cmd))
