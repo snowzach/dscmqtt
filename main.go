@@ -88,22 +88,31 @@ func main() {
 	}
 
         // Update the date/time at regular intervals
-        go func() {
-		for {
-                        logger.Info("Updating time")
-			panel.TimeUpdate()
-			time.Sleep(config.GetDuration("dsc.time_update_interval"))
+	if config.GetDuration("dsc.time_update_interval") != 0 {
+		location, err := time.LoadLocation(config.GetString("dsc.time_zone"))
+		if err != nil {
+			logger.Fatalf("Could not load timezone data: %v", err)
 		}
-	}()
+	        go func() {
+			for {
+				now := time.Now().In(location)
+	                        logger.Infof("Updating time to %s", now)
+				panel.TimeUpdate(now)
+				time.Sleep(config.GetDuration("dsc.time_update_interval"))
+			}
+		}()
+	}
 
 	// Get the full status of everything at regular intervals
-        go func() {
-		for {
-                        logger.Info("Requesting full update")
-			panel.FullUpdate()
-			time.Sleep(config.GetDuration("dsc.full_update_interval"))
-		}
-	}()
+	if config.GetDuration("dsc.full_update_interval") != 0 {
+	        go func() {
+			for {
+	                        logger.Info("Requesting full update")
+				panel.FullUpdate()
+				time.Sleep(config.GetDuration("dsc.full_update_interval"))
+			}
+		}()
+	}
 
 	topic := config.GetString("mqtt.topic")
 

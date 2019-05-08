@@ -160,8 +160,8 @@ func (p *DSCPanel) FullUpdate() error {
 }
 
 // Update the time
-func (p *DSCPanel) TimeUpdate() error {
-	return p.SendCmd(DSC_CMD_TIME_UPDATE+time.Now().Format("1504010206"))
+func (p *DSCPanel) TimeUpdate(t time.Time) error {
+	return p.SendCmd(DSC_CMD_TIME_UPDATE+t.Format("1504010206"))
 }
 
 // Send a command

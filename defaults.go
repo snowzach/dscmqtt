@@ -24,6 +24,7 @@ func init() {
 	config.SetDefault("dsc.baud", 9600)
 	config.SetDefault("dsc.full_update_interval", "60m")
 	config.SetDefault("dsc.time_update_interval", "24h")
+        config.SetDefault("dsc.time_zone", "Local")
 
 	// MQTT Settings
 	config.SetDefault("mqtt.host", "localhost")

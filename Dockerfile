@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine3.8 AS build
+FROM golang:1-alpine3.9 AS build
 RUN apk add --no-cache git && \
     rm -rf /var/cache/apk/*
 ENV CGO_ENABLED 0
@@ -7,8 +7,8 @@ WORKDIR /build
 COPY . .
 RUN go build
 
-FROM alpine:3.8
-RUN apk add --no-cache ca-certificates && \
+FROM alpine:3.9
+RUN apk add --no-cache ca-certificates tzdata && \
     rm -rf /var/cache/apk/*
 WORKDIR /
 COPY --from=build /build/dscmqtt .
