@@ -87,22 +87,6 @@ func main() {
 		logger.Fatalw("Could not initialize MQTTClient", "error", err)
 	}
 
-        // Update the date/time at regular intervals
-	if config.GetDuration("dsc.time_update_interval") != 0 {
-		location, err := time.LoadLocation(config.GetString("dsc.time_zone"))
-		if err != nil {
-			logger.Fatalf("Could not load timezone data: %v", err)
-		}
-	        go func() {
-			for {
-				now := time.Now().In(location)
-	                        logger.Infof("Updating time to %s", now)
-				panel.TimeUpdate(now)
-				time.Sleep(config.GetDuration("dsc.time_update_interval"))
-			}
-		}()
-	}
-
 	// Get the full status of everything at regular intervals
 	if config.GetDuration("dsc.full_update_interval") != 0 {
 	        go func() {
@@ -132,6 +116,15 @@ func main() {
 				mqtt.Publish(fmt.Sprintf("%s/%s", topic, m.Id), MQTT_STATE_OFF)
 			}
 			logger.Infow("Zone State", "state", m.State, "id", m.Id)
+		case DSC_TYPE_VERSION:
+                        logger.Infof("Version command detected...")
+			location, err := time.LoadLocation(config.GetString("dsc.time_zone"))
+			if err != nil {
+				logger.Fatalf("Could not load timezone data: %v", err)
+			}
+			now := time.Now().In(location)
+                        logger.Infof("Updating time to %s", now)
+			go panel.TimeUpdate(now)
 		default:
 			logger.Infow("Panel Message", "type", m.Type, "state", m.State, "id", m.Id, "error", m.Err)
 		}

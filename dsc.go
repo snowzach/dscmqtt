@@ -16,6 +16,7 @@ import (
 const (
 	DSC_TYPE_UNKNOWN = "unknown"
 	DSC_TYPE_ZONE    = "zone"
+	DSC_TYPE_VERSION = "version"
 
 	DSC_STATE_OPEN   = "open"
 	DSC_STATE_CLOSED = "closed"
@@ -29,7 +30,8 @@ type DSCPanel struct {
 	port      io.ReadWriteCloser
 	ack       chan error
 	msgBuf    chan *DSCMessage
-	sendMutex sync.Mutex
+	lastInput time.Time
+	sync.Mutex
 }
 
 type DSCMessage struct {
@@ -73,6 +75,9 @@ func NewDSCPanel() (*DSCPanel, error) {
 					if line.Len() == 0 {
 						continue // Nothing there
 					}
+					p.Lock()
+					p.lastInput = time.Now()
+					p.Unlock()
 					break // done
 				}
 				line.WriteByte(b)
@@ -135,6 +140,12 @@ func NewDSCPanel() (*DSCPanel, error) {
 					Err: fmt.Errorf("Invalid Zone: %s", s),
 				}
 
+			// Version Message
+			case "908":
+				p.msgBuf <- &DSCMessage{
+					Type:  DSC_TYPE_VERSION,
+				}
+
 			default:
 				p.msgBuf <- &DSCMessage{
 					Type: DSC_TYPE_UNKNOWN,
@@ -161,14 +172,19 @@ func (p *DSCPanel) FullUpdate() error {
 
 // Update the time
 func (p *DSCPanel) TimeUpdate(t time.Time) error {
+	p.Lock()
+	// Wait until we have received no messages for 10 seconds before sending a message to prevent contention
+	for time.Since(p.lastInput) < 10 * time.Second {
+		p.Unlock()
+		time.Sleep(time.Second)
+		p.Lock()
+	}
+	p.Unlock()
 	return p.SendCmd(DSC_CMD_TIME_UPDATE+t.Format("1504010206"))
 }
 
 // Send a command
 func (p *DSCPanel) SendCmd(cmd string) error {
-
-	p.sendMutex.Lock()
-        defer p.sendMutex.Unlock()
 
 	// Send it to the port
 	_, err := fmt.Fprintf(p.port, "%s%s\r\n", cmd, checksum(cmd))
